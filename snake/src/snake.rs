@@ -133,7 +133,7 @@ impl Snake {
         let mut ch = 0;
         for block in &self.body {
             if x == block.x && y == block.y {
-                true;
+                return true
             }
 
             ch += 1;
@@ -141,7 +141,7 @@ impl Snake {
                 break;
             }
         }
-        false
+        return false
     }
 
 

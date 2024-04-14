@@ -1,5 +1,7 @@
+use std::cell::RefCell;
 use std::fmt::Display;
 use std::collections::LinkedList;
+use std::rc::Rc;
 use piston_window::{Context, G2d};
 use piston_window::types::Color;
 
@@ -98,9 +100,10 @@ impl Snake {
         };
 
         self.body.push_front(new_block);
-        // let remove_block = self.body.pop_back().unwrap();
-        // self.tail = Some(remove_block);
+        // Assign the last tail instance 
         self.tail = self.body.pop_back();
+        // let test = self.tail.as_ref().unwrap();
+        // println!("Popped from the back: {:#?}", test);
     }
 
     pub fn head_direction(&self) -> Direction {
@@ -124,6 +127,9 @@ impl Snake {
         }
     }
 
+
+    // Add to the length of a snake when food is eaten
+    // Add last tail instance of the snake
     pub fn restore_tail(&mut self) {
         let blk = self.tail.clone().unwrap();
         self.body.push_back(blk);
@@ -143,6 +149,5 @@ impl Snake {
         }
         return false
     }
-    // test
 
 }

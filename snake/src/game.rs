@@ -9,7 +9,7 @@ use crate::draw::{draw_block, draw_rectangle};
 
 const FOOD_COLOR: Color = [0.80, 0.00, 0.00, 1.0];
 const BORDER_COLOR: Color = [0.00, 0.00, 0.00, 1.0];
-const GAMEOVER_COLOR: Color = [0.90, 0.00, 0.00, 0.5];
+
 
 const MOVING_PERIOD: f64 = 0.1;
 const RESTART_TIME: f64 = 1.0;
@@ -54,6 +54,9 @@ impl Game {
             _ => None,
         };
 
+        // Do not do anything if key pressed are opposite of one clicked
+        // EXAMPLE: UP -> DOWN -> LEFT -> RIGHT
+        // Cannot do a 180 degrees turns
         if dir.unwrap() == self.snake.head_direction().opposite() {
             return;
         }
@@ -68,11 +71,13 @@ impl Game {
             draw_block(FOOD_COLOR, self.food_x, self.food_y, con, g);
         }
 
+        // Borders in the game which snake cannot
         draw_rectangle(BORDER_COLOR, 0, 0, self.width, 1, con, g);
         draw_rectangle(BORDER_COLOR, 0, self.height - 1, self.width, 1, con, g);
         draw_rectangle(BORDER_COLOR, 0, 0, 1, self.height, con, g);
         draw_rectangle(BORDER_COLOR, self.width -1 , 0, 1, self.height, con, g);
 
+        // create new constant color for GAME_OVER STATE
         if self.game_over {
             draw_rectangle(BORDER_COLOR, 0, 0, self.width, self.height, con, g);
         }
@@ -112,6 +117,7 @@ impl Game {
             return false;
         }
 
+        // cannot touch borders otherwise snake dies
         next_x > 0 && next_y > 0 && next_x < self.width - 1 && next_y < self.height - 1
     }
 

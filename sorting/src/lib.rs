@@ -1,4 +1,4 @@
-// like an interface 
+// Like an interface 
 pub trait Sorter {
     fn sort<T>(slice: &mut [T])
     where
@@ -14,7 +14,7 @@ where
 }
 
 mod bubblesort;
-
+mod insertionsort;
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -31,8 +31,8 @@ mod tests {
 
     #[test]
     fn std_works() {
-        let mut list = vec![5,3,4,1];
+        let mut list = vec![5,3,4,1,2];
         sort::<_, StdSorter>(&mut list);
-        assert_eq!(list, &[1,3,4,5]);
+        assert_eq!(list, &[1,2,3,4,5]);
     }
 }

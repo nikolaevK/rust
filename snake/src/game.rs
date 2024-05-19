@@ -65,13 +65,16 @@ impl Game {
     }
 
     pub fn draw(&self, con: &Context, g: &mut G2d) {
+
+        // draw a snake
         self.snake.draw(con, g);
 
+        // draw food
         if self.food_exists {
             draw_block(FOOD_COLOR, self.food_x, self.food_y, con, g);
         }
 
-        // Borders in the game which snake cannot
+        // Draw Borders in the game which snake cannot touch
         draw_rectangle(BORDER_COLOR, 0, 0, self.width, 1, con, g);
         draw_rectangle(BORDER_COLOR, 0, self.height - 1, self.width, 1, con, g);
         draw_rectangle(BORDER_COLOR, 0, 0, 1, self.height, con, g);

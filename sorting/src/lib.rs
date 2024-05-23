@@ -1,3 +1,5 @@
+
+
 // Like an interface 
 pub trait Sorter {
     fn sort<T>(slice: &mut [T])
@@ -16,6 +18,7 @@ where
 mod bubblesort;
 mod insertionsort;
 mod selectionsort;
+mod quicksort;
 
 
 #[cfg(test)]

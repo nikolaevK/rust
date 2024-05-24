@@ -21,7 +21,7 @@ impl Sorter for BubbleSort {
 }
 
 #[test]
-fn bubbleSort_works() {
+fn bubble_sort_works() {
     let mut list = vec![4,2, 5,3,1];
     super::sort::<_, BubbleSort>(&mut list);
     assert_eq!(list, &[1,2,3,4,5]);

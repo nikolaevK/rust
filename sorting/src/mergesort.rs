@@ -1,10 +1,6 @@
 
 
-use crate::sort;
 
-use super::Sorter;
-
-pub struct MergeSort;
 
 
 fn merge_sort(vec: &Vec<i32>) -> Vec<i32>   {
@@ -50,19 +46,12 @@ fn merge(left: Vec<i32>, right: Vec<i32>) -> Vec<i32> {
     
 
 
-impl Sorter for MergeSort {
-    fn sort<T>(slice: &mut [T])
-    where 
-        T: Ord,
-    {
-        merge_sort(slice.to_vec());
-    }
-}
+
 
 #[test]
 fn merge_sort_works() {
     let list = vec![4,2, 5,3,1, 84,7,10,6];
-    let result = *super::sort::<_, MergeSort>(&list);
+    let result = merge_sort(&list);
     println!("{:?} slice", list);
     assert_eq!(result, &[1,2,3,4,5,6,7,10,84]);
 }

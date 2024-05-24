@@ -1,35 +1,35 @@
 use std::collections::{HashMap, HashSet};
 use std::fmt::{self, write};
 
-struct Node {
+pub struct Node {
     children: Vec<Node>,
     node_type: NodeType,
 }
 
-enum NodeType {
+pub enum NodeType {
     Text(String),
     Element(ElementData),
     Comment(String),
 }
 
-struct ElementData {
+pub struct ElementData {
     tag_name: String,
     attributes: AttrMap,
 }
 
 impl ElementData {
-    fn new(tag_name: String, attributes: AttrMap) -> ElementData {
+    pub fn new(tag_name: String, attributes: AttrMap) -> ElementData {
         ElementData {
             tag_name,
             attributes,
         }
     }
 
-    fn get_id(&self) -> Option<&String> {
+    pub fn get_id(&self) -> Option<&String> {
         self.attributes.get("id")
     }
 
-    fn get_classes(&self) -> HashSet<&str> {
+    pub fn get_classes(&self) -> HashSet<&str> {
         match self.attributes.get("class") {
             Some(s) => s.split(' ').collect(),
             None => HashSet::new(),
@@ -37,10 +37,10 @@ impl ElementData {
     }
 }
 
-type AttrMap = HashMap<String, String>;
+pub type AttrMap = HashMap<String, String>;
 
 impl Node {
-    fn new(node_type: NodeType, children: Vec<Node>) -> Node  {
+    pub fn new(node_type: NodeType, children: Vec<Node>) -> Node  {
         Node {
             node_type,
             children,
@@ -74,7 +74,7 @@ impl fmt::Debug for ElementData {
     }
 }
 
-fn pretty_print(n: &Node, indent_size:usize) {
+pub fn pretty_print(n: &Node, indent_size:usize) {
     let indent = (0..indent_size).map(|_| " ").collect::<String>();
 
     match n.node_type {

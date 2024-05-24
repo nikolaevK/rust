@@ -20,8 +20,6 @@ mod insertionsort;
 mod selectionsort;
 mod quicksort;
 
-mod mergesort;
-
 
 #[cfg(test)]
 mod tests {

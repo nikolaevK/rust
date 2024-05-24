@@ -54,10 +54,16 @@ fn quicksort<T: Ord>(slice: &mut [T]) {
         } else if &rest[right] > pivot {
             // right already in a correct place
             // avoid unnecessary swaps
+            if right == 0 {
+                break;
+            }
             right -= 1;
         } else {
             rest.swap(left, right);
             left += 1;
+            if right == 0 {
+                break;
+            }
             right -= 1;
         }
     }
@@ -82,8 +88,8 @@ impl Sorter for QuickSort {
 
 #[test]
 fn quicksort_works() {
-    let mut list = vec![4,2, 5,3,1,2];
+    let mut list = vec![4,2, 5,3,1, 84,7,10,6];
     super::sort::<_, QuickSort>(&mut list);
     println!("{:?} slice", list);
-    assert_eq!(list, &[1,2,3,4,5]);
+    assert_eq!(list, &[1,2,3,4,5,6,7,10,84]);
 }

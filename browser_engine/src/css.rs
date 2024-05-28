@@ -10,13 +10,13 @@ pub struct Rule {
     pub declarations: Vec<Declaration>,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub struct Selector {
     pub simple: Vec<SimpleSelector>,
     pub combinators: Vec<char>,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub struct SimpleSelector {
     pub tag_name: Option<String>,
     pub id: Option<String>,

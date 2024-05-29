@@ -7,9 +7,9 @@ use gfx::Factory;
 use gfx::traits::FactoryExt;
 use gfx::Device;
 
-use layout;
-use command::DisplayCommand;
-
+use crate::layout;
+use crate::commands::DisplayCommand;
+//
 pub type DepthFormat = gfx::format::DepthStencil;
 pub type ColorFormat = gfx::format::Rgba8;
 
@@ -111,9 +111,9 @@ pub fn render_loop(command_list: &[DisplayCommand]) {
 
     let events_loop = glutin::EventsLoop::new();
     let context = glutin::ContextBuilder::new();
-    
+
     let (window, mut device, mut factory, main_color, _main_depth) =
-        gfx_window_glutin::init::<ColorFormat, DepthFormat>(builder, context, events_loop).expect("Failed to create a window");
+        gfx_window_glutin::init::<ColorFormat, DepthFormat>(builder).expect("Failed to create a window");
 
     let mut encoder: gfx::Encoder<_, _> = factory.create_command_buffer().into();
 

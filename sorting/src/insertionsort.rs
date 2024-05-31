@@ -3,7 +3,7 @@ use super::Sorter;
 pub struct InsertionSort;
 
 impl Sorter for InsertionSort {
-    fn sort<T>(slice: &mut [T])
+    fn sort<T>(&self, slice: &mut [T])
     where
     T : Ord 
     {
@@ -23,6 +23,6 @@ impl Sorter for InsertionSort {
 #[test]
 fn insertion_sort_works() {
     let mut list = vec![4,2, 5,3,1];
-    super::sort::<_, InsertionSort>(&mut list);
+    InsertionSort.sort(&mut list);
     assert_eq!(list, &[1,2,3,4,5]);
 }

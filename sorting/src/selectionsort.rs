@@ -3,7 +3,7 @@ use super::Sorter;
 pub struct SelectionSort;
 
 impl Sorter for SelectionSort {
-    fn sort<T>(slice: &mut [T])
+    fn sort<T>(&self, slice: &mut [T])
     where
     T : Ord 
     // One Version
@@ -44,6 +44,6 @@ impl Sorter for SelectionSort {
 #[test]
 fn selection_works() {
     let mut list = vec![4,2, 5,3,1];
-    super::sort::<_, SelectionSort>(&mut list);
+    SelectionSort.sort(&mut list);
     assert_eq!(list, &[1,2,3,4,5]);
 }

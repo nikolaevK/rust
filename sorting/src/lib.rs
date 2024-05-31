@@ -1,19 +1,18 @@
 
 
-// Like an interface 
+
 pub trait Sorter {
-    fn sort<T>(slice: &mut [T])
+    fn sort<T>(&self, slice: &mut [T])
     where
-        T: Ord;
+        T: Ord + Clone;
 }
 
-pub fn sort<T, S>(slice: &mut [T])
-where
-    T: Ord,
-    S: Sorter,
-{
-    S::sort(slice)
+pub trait MergeSortSorter {
+    fn sort(&self, slice: &Vec<i32>) -> Vec<i32>;
+  
 }
+
+
 
 mod bubblesort;
 mod insertionsort;
@@ -22,13 +21,19 @@ mod quicksort;
 mod mergesort;
 
 
+pub use bubblesort::BubbleSort;
+pub use insertionsort::InsertionSort;
+pub use selectionsort::SelectionSort;
+pub use quicksort::QuickSort;
+pub use mergesort::MergeSort;
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     struct StdSorter;
     impl Sorter for StdSorter {
-        fn sort<T>(slice: &mut [T])
+        fn sort<T>(&self, slice: &mut [T])
         where
             T: Ord,
         {
@@ -39,7 +44,7 @@ mod tests {
     #[test]
     fn std_works() {
         let mut list = vec![5,3,4,1,2];
-        sort::<_, StdSorter>(&mut list);
+        StdSorter.sort(&mut list);
         assert_eq!(list, &[1,2,3,4,5]);
     }
 }

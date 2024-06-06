@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html style="color: white">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Websocket status page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-blue-400">
+    <div class="flex flex-col justify-between h-screen p-8">
+      <div class="flex items-center justify-center gap-2">
+        <div id="status-dot"></div>
+        <div id="status"></div>
+      </div>
+      <div
+        id="parent"
+        class="flex flex-col justify-end h-full gap-4 pb-8 overflow-y-auto"
+      >
+        <div
+          id="message-container"
+          class="flex flex-col justify-center gap-2"
+        ></div>
+      </div>
+      <div class="flex items-center justify-center gap-4">
+        <input
+          id="input"
+          type="text"
+          class="w-full p-4 text-blue-500 rounded-md focus:outline-none"
+        />
+        <button class="p-4 text-blue-500 bg-white rounded-md">send</button>
+      </div>
+    </div>
+    <script type="text/javascript">
+      const messageParent = document.querySelector("#parent");
+      const messageContainer = document.querySelector("#message-container");
+      const status = document.querySelector("#status");
+      const statusDot = document.querySelector("#status-dot");
+      const input = document.querySelector("input");
+      const button = document.querySelector("button");
+
+      const PERSON = prompt("Please enter your name", "Harry Potter");
+
+      const proto = location.protocol.startsWith("https") ? "wss" : "ws";
+      const websocket = new WebSocket(
+        `${proto}://${window.location.host}/websocket`
+      );
+
+      addEventListener("load", track());
+      function track() {
+        websocket.onopen = () => {
+          console.log("connection opened");
+          status.className = "text-[#39FF14] text-center";
+          statusDot.className = "h-3 w-3 rounded-full bg-[#39FF14]";
+          status.textContent = "Online";
+        };
+
+        websocket.onclose = () => {
+          console.log("connection closed");
+          status.className = "text-red-500 text-center";
+          statusDot.className = "h-3 w-3 rounded-full bg-red-500";
+          status.textContent = "Offline";
+        };
+
+        websocket.onmessage = (e) => {
+          const response = JSON.parse(e.data);
+
+          if (response.message) {
+            const name = document.createElement("p");
+            const message = document.createElement("p");
+            name.textContent = response.username;
+            message.textContent = response.message;
+            message.className =
+              "bg-white text-blue-500 p-2 rounded-md max-w-96 text-balance";
+
+            messageContainer.appendChild(name);
+            messageContainer.appendChild(message);
+            messageParent.appendChild(messageContainer);
+
+            if (response.uid !== undefined && response.uid >= 0) {
+              name.textContent = `${response.username} - (${response.uid})`;
+            }
+          }
+        };
+      }
+      function sendMessage() {
+        const user = {
+          message: input.value,
+          username: PERSON,
+        };
+
+        websocket.send(JSON.stringify(user));
+        input.value = "";
+      }
+
+      button.addEventListener("click", sendMessage);
+    </script>
+  </body>
+</html>

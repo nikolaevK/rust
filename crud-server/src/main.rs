@@ -1,10 +1,13 @@
+mod models;
 use std::env;
 use dotenvy::dotenv;
-use libsql::{params, Builder, Database, Value};
+use libsql::{Builder, Database};
 use actix_cors::Cors;
-use actix_web::{get,post, http::header, middleware::Logger, web::{self, Json, ServiceConfig}, Result};
+use actix_web::{get, http::header, middleware::Logger, patch, post, web::{self, Json, Path, ServiceConfig}, HttpResponse, Responder, Result};
+use models::{CreateTodo, UpdateTodo};
 use serde::{Deserialize, Serialize};
 use shuttle_actix_web::ShuttleActixWeb;
+use validator::Validate;
 
 
 #[derive(Serialize, Deserialize)]
@@ -41,21 +44,42 @@ async fn retrieve() -> Result<Json<Vec<Item>>> {
 }
 
 #[post("/add")]
-async fn add_todo(body: Json<Item>) -> Result<Json<bool>> {
+async fn add_todo(body: Json<CreateTodo>) -> impl Responder {
     let db = connection().await;
     let conn = db.connect().unwrap();
 
-    let todo = conn
-        .execute("INSERT into todos (todo) VALUES (?1)", [body.todo.clone()])
-        .await;
+    let is_valid = body.validate();
 
-    // TODO: create separate modules and crates
-    // write good response
-    match todo {
-        Ok(_) => Ok(Json(true)),
-        Err(_) => Ok(Json(false)),
+    match is_valid {
+        Ok(_) => {
+            let todo = conn
+                .execute("INSERT into todos (todo) VALUES (?)", [body.todo.clone()])
+                .await;
+
+            match todo {
+                Ok(_) => HttpResponse::Ok().body(format!("Todo {} added successfully", body.todo)),
+                Err(_) => HttpResponse::Ok().body("Todo was not added successfully"),
+            }
+        },
+        Err(_) => HttpResponse::Ok().body("Todo name is required")
     }
     
+}
+
+#[patch("/update/{id}")]
+async fn update_todo(update_todo_url: Path<UpdateTodo>) -> impl Responder {
+    let db = connection().await;
+    let conn = db.connect().unwrap();
+
+    let id = update_todo_url.into_inner().id;
+
+    let todo = conn
+                .execute("UPDATE todos SET todo = ? WHERE id = ?", ["update", &id])
+                .await;
+    match todo {
+        Ok(_) => HttpResponse::Ok().body(format!("Todo {} updated successfully", id)),
+        Err(_) => HttpResponse::Ok().body("Todo was not updated successfully"),
+    }
 }
 
 #[shuttle_runtime::main]
@@ -75,7 +99,7 @@ async fn main() -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clon
         let cors = Cors::default()
                  .allowed_origin("http://localhost:5173")
                  .allowed_origin("http://localhost:5173/")
-                 .allowed_methods(vec!["GET", "POST"])
+                .allowed_methods(vec!["GET", "POST", "PATCH", "DELETE"])
                  .allowed_headers(vec![
                      header::CONTENT_TYPE,
                      header::AUTHORIZATION,
@@ -86,6 +110,7 @@ async fn main() -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clon
             web::scope("")
             .service(retrieve)
             .service(add_todo)
+            .service(update_todo)
             .wrap(cors)
             .wrap(Logger::default())
         );

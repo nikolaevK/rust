@@ -1,48 +1,54 @@
 mod models;
 mod errors;
+mod db;
+use crate::db::Db;
+
 use std::env;
 use dotenvy::dotenv;
 use errors::TodoError;
 use libsql::{Builder, Database};
 use actix_cors::Cors;
-use actix_web::{get, http::header, middleware::Logger, patch, post, web::{self, Json, Path, ServiceConfig}, Responder, Result};
-use models::{CreateTodo, UpdateTodo};
+use actix_web::{get, http::header, middleware::Logger, patch, post, web::{self, Data, Json, Path, ServiceConfig}, Responder, Result,};
+use models::{CreateTodo, UpdateTodo, Item};
 use serde::{Deserialize, Serialize};
 use shuttle_actix_web::ShuttleActixWeb;
 use validator::Validate;
 
 
-#[derive(Serialize, Deserialize)]
-struct Item {
-    id: i64, 
-    todo: String,
-}
+
 
 #[get("/")]
-async fn retrieve() -> Result<Json<Vec<Item>>, TodoError> {
-    let db = connection().await;
-    let conn = db.connect().unwrap();
-    let results = conn
-    .query("SELECT * FROM todos", ())
-    .await;
+async fn retrieve(state: Data<Db>) -> Result<Json<Vec<Item>>, TodoError> {
+    // let conn = state.connection.connect().unwrap();
+    // let results = conn
+    // .query("SELECT * FROM todos", ())
+    // .await;
 
-    let mut items = Vec::new();
+    // let mut items = Vec::new();
+    // match results {
+    //     Ok(mut rows) => {
+    //         while let Some(row) = rows.next().await.unwrap() {
+    //             let item: Item = Item {
+    //                 id: row.get(0).unwrap(),
+    //                 todo: row.get(1).unwrap(),
+    //             };
+    //             items.push(item);
+    //         }
+    //     },
+    //     Err(_) => {
+    //         println!("Error retrieving");
+    //         ()
+    //     }
+    // }   
+
+    let results = state.get_all_todos().await;
+
     match results {
-        Ok(mut rows) => {
-            while let Some(row) = rows.next().await.unwrap() {
-                let item: Item = Item {
-                    id: row.get(0).unwrap(),
-                    todo: row.get(1).unwrap(),
-                };
-                items.push(item);
-            }
-        },
-        Err(_) => {
-            println!("Error retrieving");
-            ()
-        }
-    }   
-    Ok(Json(items))
+        Some(results) => Ok(Json(results)),
+        //TODO: Frontend Needs empty array not error
+        None => Err(TodoError::NoTodosFound)
+    }
+    
 }
 
 #[post("/add")]
@@ -93,15 +99,17 @@ async fn update_todo(update_todo_url: Path<UpdateTodo>, body: Json<CreateTodo>) 
 #[shuttle_runtime::main]
 async fn main() -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
 
-    let db = connection().await;
-    let conn = db.connect().unwrap();
-
+    let db = Db::init().await.expect("error with db initialization");
+    // let db = connection().await;
+    let conn = db.connection.connect().unwrap();
     conn.execute(
         "CREATE TABLE IF NOT EXISTS todos(id INTEGER PRIMARY KEY AUTOINCREMENT, todo VARCHAR)",
         (),
     )
     .await
     .unwrap();
+
+    let db_connection = web::Data::new(db);
    
     let config = move |cfg: &mut ServiceConfig| {
         let cors = Cors::default()
@@ -119,6 +127,7 @@ async fn main() -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clon
             .service(retrieve)
             .service(add_todo)
             .service(update_todo)
+            .app_data(db_connection)
             .wrap(cors)
             .wrap(Logger::default())
         );

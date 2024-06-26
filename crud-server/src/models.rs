@@ -1,2 +1,2 @@
 pub mod todo;
-pub use todo::{CreateTodo, UpdateTodo};
+pub use todo::{CreateTodo, UpdateTodo, Item};

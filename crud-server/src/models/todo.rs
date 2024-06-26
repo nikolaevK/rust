@@ -10,3 +10,9 @@ pub struct CreateTodo {
 pub struct UpdateTodo {
     pub id: String,
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct Item {
+   pub id: i64, 
+   pub todo: String,
+}

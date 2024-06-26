@@ -13,3 +13,4 @@ tokio = "1.26.0"
 serde = { version = "1.0.148", features = ["derive"] }
 actix-cors = "0.7.0"
 validator = { version = "0.16.1", features = ["derive"] }
+derive_more = "0.99.0"

@@ -1,9 +1,11 @@
 mod models;
+mod errors;
 use std::env;
 use dotenvy::dotenv;
+use errors::TodoError;
 use libsql::{Builder, Database};
 use actix_cors::Cors;
-use actix_web::{get, http::header, middleware::Logger, patch, post, web::{self, Json, Path, ServiceConfig}, HttpResponse, Responder, Result};
+use actix_web::{get, http::header, middleware::Logger, patch, post, web::{self, Json, Path, ServiceConfig}, Responder, Result};
 use models::{CreateTodo, UpdateTodo};
 use serde::{Deserialize, Serialize};
 use shuttle_actix_web::ShuttleActixWeb;
@@ -17,7 +19,7 @@ struct Item {
 }
 
 #[get("/")]
-async fn retrieve() -> Result<Json<Vec<Item>>> {
+async fn retrieve() -> Result<Json<Vec<Item>>, TodoError> {
     let db = connection().await;
     let conn = db.connect().unwrap();
     let results = conn
@@ -44,7 +46,7 @@ async fn retrieve() -> Result<Json<Vec<Item>>> {
 }
 
 #[post("/add")]
-async fn add_todo(body: Json<CreateTodo>) -> impl Responder {
+async fn add_todo(body: Json<CreateTodo>) -> Result<Json<String>, TodoError> {
     let db = connection().await;
     let conn = db.connect().unwrap();
 
@@ -57,28 +59,34 @@ async fn add_todo(body: Json<CreateTodo>) -> impl Responder {
                 .await;
 
             match todo {
-                Ok(_) => HttpResponse::Ok().body(format!("Todo {} added successfully", body.todo)),
-                Err(_) => HttpResponse::Ok().body("Todo was not added successfully"),
+                Ok(_) => Ok(Json(body.todo.clone())),
+                Err(_) => Err(TodoError::TodoCreationFailure),
             }
         },
-        Err(_) => HttpResponse::Ok().body("Todo name is required")
+        Err(_) => Err(TodoError::TodoCreationFailure)
     }
     
 }
 
 #[patch("/update/{id}")]
-async fn update_todo(update_todo_url: Path<UpdateTodo>) -> impl Responder {
+async fn update_todo(update_todo_url: Path<UpdateTodo>, body: Json<CreateTodo>) -> impl Responder {
     let db = connection().await;
     let conn = db.connect().unwrap();
 
     let id = update_todo_url.into_inner().id;
+    let is_valid = body.validate();
+
+    match is_valid {
+        Ok(_) => println!("Valid todo"),
+        Err(_) => panic!("Invalid todo name"),
+    }
 
     let todo = conn
-                .execute("UPDATE todos SET todo = ? WHERE id = ?", ["update", &id])
+                .execute("UPDATE todos SET todo = ? WHERE id = ?", [body.todo.clone(), id.clone()])
                 .await;
     match todo {
-        Ok(_) => HttpResponse::Ok().body(format!("Todo {} updated successfully", id)),
-        Err(_) => HttpResponse::Ok().body("Todo was not updated successfully"),
+        Ok(_) => Ok(Json("Todo {id} updated successfully")),
+        Err(_) => Err(TodoError::NoSuchTodoFound)
     }
 }
 

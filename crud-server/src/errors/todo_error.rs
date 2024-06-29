@@ -23,7 +23,7 @@ impl ResponseError for TodoError {
     fn status_code(&self) -> StatusCode {
         match self {
             TodoError::NoTodosFound => StatusCode::NOT_FOUND,
-            TodoError::TodoCreationFailure => StatusCode::INTERNAL_SERVER_ERROR,
+            TodoError::TodoCreationFailure => StatusCode::BAD_REQUEST,
             TodoError::NoSuchTodoFound => StatusCode::NOT_FOUND
         }
     }

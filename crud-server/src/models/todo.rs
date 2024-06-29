@@ -13,6 +13,11 @@ pub struct UpdateTodo {
 
 #[derive(Serialize, Deserialize)]
 pub struct Item {
-   pub id: i64, 
+   pub id: u64, 
+   pub todo: String,
+}
+
+pub struct UpdateItem {
+   pub id: String, 
    pub todo: String,
 }

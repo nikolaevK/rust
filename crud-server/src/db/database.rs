@@ -1,11 +1,11 @@
+use crate::models::{todo::UpdateItem, Item};
 use libsql::{Builder, Database, Error};
-use crate::models::Item;
-use std::env;
 use dotenvy::dotenv;
+use std::env;
 
 
 pub struct Db {
-    pub connection: Database
+    pub db: Database
 }
 
 impl Db {
@@ -20,12 +20,12 @@ impl Db {
         .await
         .unwrap();
 
-        Ok(Db {connection:db})
+        Ok(Db { db })
     }
 
     pub async fn get_all_todos(&self) -> Option<Vec<Item>> {
-        let conn = self.connection.connect().unwrap();
-        let results = conn
+        let conn = self.db.connect().unwrap();
+        let results: Result<libsql::Rows, Error> = conn
             .query("SELECT * FROM todos", ())
             .await;
 
@@ -39,14 +39,36 @@ impl Db {
                     };
                     items.push(item);
                 }
-               
+               Some(items)
             },
-            Err(_) => {
-                println!("Error retrieving");
-                ()
-            }
-        } 
-        Some(items)
+            Err(_) => None   
+        }
+    }
+
+    pub async fn add_item(&self, todo: String) -> Option<String> {
+        let conn = self.db.connect().unwrap();
+        let result = conn
+            .execute("INSERT into todos (todo) VALUES (?)", [todo.clone()])
+            .await;
+
+        match result {
+            Ok(_) => Some(todo),
+            Err(_) => None,
+        }
+    }
+
+    pub async fn update_item(&self, todo: UpdateItem) -> Option<UpdateItem> {
+        let conn = self.db.connect().unwrap();
+
+        let result = conn
+            .execute("UPDATE todos SET todo = ? WHERE id = ?", [todo.todo.clone(), todo.id.to_string()])
+            .await;
+
+        match result {
+            Ok(_) => Some(todo),
+            Err(_) => None,
+        }
+
     }
 }
 
